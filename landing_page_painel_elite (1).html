@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workshop Reconstrução Neural — William Carvalho</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Html2Canvas para exportar imagens -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf9f5; /* Fundo linho acolhedor e requintado */
+            color: #1e293b;
+            scroll-behavior: smooth;
+        }
+
+        /* Cores de Luxo Clínico, Sobriedade e Rigor Acadêmico */
+        .theme-claridade {
+            --primary: #9a6a24; /* Ouro envelhecido fosco */
+            --primary-dark: #784f17;
+            --secondary: #faf9f5;
+            --bg-gradient: radial-gradient(circle at 80% 10%, rgba(154, 106, 36, 0.05), transparent 50%), linear-gradient(135deg, #faf9f5, #f4f2eb);
+            --accent: #1e40af; /* Azul Clínico Acadêmico */
+            --border-glow: rgba(154, 106, 36, 0.15);
+        }
+
+        .theme-target {
+            background: var(--bg-gradient);
+            border-color: var(--border-glow);
+            transition: all 0.4s ease;
+        }
+
+        /* Grid sofisticado de fundo para dar textura e ancoragem visual */
+        .grid-bg::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(154, 106, 36, 0.03) 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Alvo para transmitir Claridade e Segurança */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(154, 106, 36, 0.1);
+            box-shadow: 0 15px 35px -10px rgba(154, 106, 36, 0.06);
+        }
+
+        /* Pulseira de destaque para chamar atenção na triagem */
+        @keyframes subtle-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(154, 106, 36, 0.4); }
+            50% { transform: scale(1.01); box-shadow: 0 0 20px 4px rgba(154, 106, 36, 0.15); }
+        }
+        .highlight-card {
+            animation: subtle-pulse 4s infinite ease-in-out;
+            border: 2px solid #9a6a24;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.01);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(15, 23, 42, 0.08);
+            border-radius: 3px;
+        }
+        
+        #neural-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        .preview-scale {
+            transform-origin: top center;
+        }
+        @media(max-width: 480px) {
+            .preview-scale {
+                transform: scale(0.85);
+            }
+        }
+
+        /* Estilo da Linha Conectora de Storytelling */
+        .story-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background-image: linear-gradient(to bottom, transparent, #9a6a24 15%, #9a6a24 85%, transparent);
+            transform: translateX(-50%);
+            opacity: 0.25;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="text-slate-700 antialiased theme-claridade grid-bg relative">
+
+    <!-- CONTAINER PRINCIPAL DA LANDING PAGE PÚBLICA -->
+    <div id="public-landing" class="relative overflow-hidden min-h-screen">
+        
+        <!-- Header / Navbar Sóbria -->
+        <header class="border-b border-[#9a6a24]/10 bg-white/95 backdrop-blur-md sticky top-0 z-50 shadow-sm shadow-slate-100/30">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-[#0f172a] text-[#faf9f5] rounded-xl font-bold shadow-md">🧠</span>
+                    <span class="font-bold tracking-wider text-[#0f172a] uppercase text-xs sm:text-sm">RECONSTRUÇÃO NEURAL</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="hidden md:flex items-center gap-1.5 text-[10px] font-bold text-[#9a6a24] uppercase tracking-wider bg-amber-50 px-2.5 py-1 rounded-full border border-[#9a6a24]/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#9a6a24] animate-ping"></span> 7 Vagas Restantes
+                    </span>
+                    <a href="#plans-section" class="px-4 py-2 bg-[#0f172a] hover:bg-slate-800 text-[#faf9f5] font-bold rounded-lg text-xs uppercase tracking-wider transition">
+                        Garantir Vaga
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- LINHA CONECTORA CENTRAL (Ariadne's Thread) -->
+        <div class="hidden lg:block story-line"></div>
+
+        <!-- JORNADA PASSO 1: O ESPELHO (Conexão e Alívio da Sobrecarga Racional) -->
+        <section class="relative min-h-[60vh] flex items-center justify-center py-12 px-4 overflow-hidden">
+            <canvas id="neural-canvas"></canvas>
+            <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
+                <div class="flex flex-col items-center gap-3">
+                    <span class="px-4 py-1.5 bg-[#9a6a24]/10 border border-[#9a6a24]/20 rounded-full text-[#9a6a24] font-bold text-xs uppercase tracking-widest inline-block">
+                        Imersão Científica com William Carvalho
+                    </span>
+                    <p class="text-[10px] text-slate-500 flex items-center gap-1.5 uppercase font-bold tracking-widest bg-white px-3 py-1 rounded-full border border-[#9a6a24]/10 shadow-sm">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#1e40af]"></i> Protocolo Clínico Baseado em Neurociência & Psicanálise
+                    </p>
+                </div>
+                
+                <!-- Headline Sóbria e Cirúrgica -->
+                <h1 class="text-3xl sm:text-6xl font-extrabold text-[#0f172a] tracking-tight leading-tight uppercase">
+                    Você Não É o <br>
+                    <span class="text-[#9a6a24] font-black">Impulso</span>.
+                </h1>
+                
+                <p class="text-slate-600 text-sm sm:text-lg max-w-2xl mx-auto font-light leading-relaxed">
+                    Sua mente está exausta de lutar contra si mesma. A procrastinação e a névoa mental não são falhas de caráter, são mecanismos de defesa do seu cérebro sob estresse. Vamos decodificar esse loop agora.
+                </p>
+                
+                <div class="flex justify-center pt-2">
+                    <a href="#quiz-section" class="px-8 py-4 bg-[#0f172a] hover:bg-slate-800 text-white font-bold rounded-xl text-xs sm:text-sm uppercase tracking-wider shadow-lg transition flex items-center justify-center gap-2">
+                        <i data-lucide="compass" class="w-4 h-4 text-amber-400"></i> Começar pelo Autodiagnóstico
+                    </a>
+                </div>
+                
+                <div class="pt-4">
+                    <i data-lucide="chevron-down" class="w-5 h-5 mx-auto text-[#9a6a24] animate-bounce"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- JORNADA PASSO 2: O AUTODIAGNÓSTICO EM DESTAQUE ABSOLUTO -->
+        <section id="quiz-section" class="py-12 px-4 relative scroll-mt-20 z-10">
+            <div class="max-w-3xl mx-auto space-y-8">
+                
+                <!-- Indicador de Sequência (Para o usuário não se perder) -->
+                <div class="flex items-center justify-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#9a6a24] text-white flex items-center justify-center font-bold text-xs shadow-md">1</div>
+                    <div class="h-[2px] w-12 bg-[#9a6a24]/30"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#9a6a24]">Diagnóstico Clínico Inicial</span>
+                </div>
+
+                <div class="text-center space-y-2">
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-red-600 bg-red-50 border border-red-200 px-3 py-1 rounded-full inline-block animate-pulse">📍 COMECE POR ESTA ETAPA</span>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-[#0f172a] uppercase">Meça Sua Reatividade Cognitiva</h2>
+                    <p class="text-slate-500 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                        Seu cérebro está travando escolhas saudáveis? Responda sinceramente para mapear seu nível atual de sobrecarga biológica.
+                    </p>
+                </div>
+
+                <!-- Card da Triagem com Borda de Pulsação Ouro -->
+                <div class="glass-panel p-6 sm:p-10 rounded-3xl border shadow-xl relative overflow-hidden highlight-card" id="quiz-card">
+                    <div id="quiz-step-container" class="space-y-6">
+                        <!-- Pergunta 1 -->
+                        <div class="quiz-step space-y-4" id="step-1">
+                            <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#9a6a24]">
+                                <span>Etapa 01 de 03</span>
+                                <span>Análise de Foco e Escape</span>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-[#0f172a] leading-snug">Quando se depara com uma tarefa complexa ou de alta prioridade, qual é a sua reação biológica inconsciente?</h3>
+                            <div class="grid grid-cols-1 gap-3 pt-2">
+                                <button onclick="nextQuizStep(1, 10)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm hover:border-[#9a6a24]/30">
+                                    <span class="text-slate-700 font-semibold">A) Sinto uma urgência irracional de buscar alívio rápido (redes sociais, tarefas fáceis, café).</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                                <button onclick="nextQuizStep(1, 5)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm hover:border-[#9a6a24]/30">
+                                    <span class="text-slate-700 font-semibold">B) Fico analisando repetidamente os passos ("paralisia por análise") sem de fato agir.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                                <button onclick="nextQuizStep(1, 2)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm hover:border-[#9a6a24]/30">
+                                    <span class="text-slate-700 font-semibold">C) Consigo iniciar imediatamente, mas perco totalmente a tração nas primeiras dezenas de minutos.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pergunta 2 -->
+                        <div class="quiz-step hidden space-y-4" id="step-2">
+                            <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#9a6a24]">
+                                <span>Etapa 02 de 03</span>
+                                <span>Controle de Ansiedade Cognitiva</span>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-[#0f172a] leading-snug">Como se comporta seu estado mental e foco após sofrer uma interrupção inesperada?</h3>
+                            <div class="grid grid-cols-1 gap-3 pt-2">
+                                <button onclick="nextQuizStep(2, 10)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm">
+                                    <span class="text-slate-700 font-semibold">A) Sinto uma irritabilidade latente e tenho extrema dificuldade para voltar à tarefa original.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                                <button onclick="nextQuizStep(2, 5)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm">
+                                    <span class="text-slate-700 font-semibold">B) Eu consigo alternar de atividade, mas uma "névoa de lentidão" mental permanece por horas.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                                <button onclick="nextQuizStep(2, 2)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm">
+                                    <span class="text-slate-700 font-semibold">C) Aceito a interrupção sem desgaste emocional e consigo recuperar o fluxo rapidamente.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pergunta 3 -->
+                        <div class="quiz-step hidden space-y-4" id="step-3">
+                            <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider text-[#9a6a24]">
+                                <span>Etapa 03 de 03</span>
+                                <span>Ego e Repetição Psíquica</span>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-[#0f172a] leading-snug">Você percebe que repete velhos hábitos ruins mesmo sabendo racionalmente o quanto eles te prejudicam?</h3>
+                            <div class="grid grid-cols-1 gap-3 pt-2">
+                                <button onclick="calculateQuizResult(10)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm">
+                                    <span class="text-slate-700 font-semibold">A) Sim, frequentemente. Sinto-me preso em um loop de auto-sabotagem involuntária.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                                <button onclick="calculateQuizResult(5)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm">
+                                    <span class="text-slate-700 font-semibold">B) Ocorre eventualmente quando estou sob cansaço físico ou esgotamento de decisões.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                                <button onclick="calculateQuizResult(2)" class="w-full text-left p-4 bg-[#faf9f5]/60 hover:bg-white rounded-xl border border-[#9a6a24]/10 text-xs sm:text-sm font-medium transition flex items-center justify-between group shadow-sm">
+                                    <span class="text-slate-700 font-semibold">C) Raramente. Meu julgamento analítico dita minhas escolhas na maior parte do tempo.</span>
+                                    <i data-lucide="arrow-right" class="w-4 h-4 text-[#9a6a24] opacity-0 group-hover:opacity-100 transition shrink-0 ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Resultado Dinâmico -->
+                        <div class="quiz-step hidden space-y-6 text-center py-4" id="step-result">
+                            <div class="w-16 h-16 bg-amber-50 text-slate-900 rounded-full flex items-center justify-center mx-auto mb-2 border border-[#9a6a24]/20 shadow-md">
+                                <i data-lucide="activity" class="w-8 h-8 text-[#9a6a24]"></i>
+                            </div>
+                            <div class="space-y-2">
+                                <span class="text-[10px] font-bold text-[#1e40af] uppercase tracking-widest">Resultado do seu Perfil</span>
+                                <h4 class="text-xl font-bold text-[#0f172a] uppercase" id="result-title">Carregando...</h4>
+                                <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto" id="result-desc">Analisando suas respostas sob a perspectiva neurocientífica.</p>
+                            </div>
+                            
+                            <div class="bg-amber-50/50 border border-[#9a6a24]/20 p-5 rounded-2xl max-w-md mx-auto text-xs text-left shadow-inner space-y-1.5">
+                                <span class="font-bold text-[#9a6a24] block uppercase text-[9px] tracking-wider text-center">Recomendação do Mentor:</span>
+                                <p id="result-rec" class="leading-relaxed text-slate-600">Recomendação personalizada.</p>
+                            </div>
+
+                            <button onclick="scrollToVisualMapping()" class="px-6 py-3 bg-[#0f172a] hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 mx-auto">
+                                Continuar Análise: Ver Meu Estado <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JORNADA PASSO 3: O MAPA DE AUTOIDENTIFICAÇÃO BIOLÓGICA (Ancoragem por Figuras) -->
+        <section id="visual-mapping" class="py-16 bg-[#f4f2eb]/40 border-t border-b border-[#9a6a24]/10 px-4 relative scroll-mt-20 z-10">
+            <div class="max-w-5xl mx-auto space-y-12">
+                
+                <!-- Indicador de Sequência -->
+                <div class="flex items-center justify-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#9a6a24] text-white flex items-center justify-center font-bold text-xs shadow-md">2</div>
+                    <div class="h-[2px] w-12 bg-[#9a6a24]/30"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#9a6a24]">Reconhecimento das Barreiras</span>
+                </div>
+
+                <div class="text-center space-y-3">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-[#0f172a] uppercase">Em Qual Destas Imagens Sua Mente Está Presa?</h2>
+                    <p class="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+                        A exaustão cerebral se manifesta através de circuitos biológicos específicos. Localize-se para entender onde a sua energia está se esvaindo:
+                    </p>
+                </div>
+
+                <!-- Grid de Ilustrações Clínicas de Estados de Dor -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Bloco 1: A Névoa que Congela -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-md flex flex-col justify-between hover:border-[#9a6a24]/50 transition duration-300 group">
+                        <div class="space-y-4">
+                            <!-- SVG Névoa / Córtex Sem Energia -->
+                            <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-[#9a6a24] border border-[#9a6a24]/20">
+                                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 2a5 5 0 0 1 5 5v2.3a4.5 4.5 0 0 1-1.3 8.3L12 22l-3.7-4.4A4.5 4.5 0 0 1 7 9.3V7a5 5 0 0 1 5-5z" stroke-dasharray="3 3"/>
+                                    <circle cx="12" cy="9" r="2" fill="currentColor" class="text-[#9a6a24]"/>
+                                    <path d="M4 14h2M18 14h2M2 17h3M19 17h3" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-base font-bold text-[#0f172a] uppercase tracking-tight">1. A Névoa que Congela</h3>
+                                <p class="text-xs text-slate-500 leading-relaxed">
+                                    Você inicia o dia sabendo o que precisa entregar, mas sente um peso físico atrás dos olhos. A mente parece uma folha em branco, paralisada diante da primeira tarefa analítica.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-slate-100 mt-4 flex items-center justify-between">
+                            <span class="text-[9px] font-bold text-[#1e40af] uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#1e40af]"></span> Córtex Sem Energia
+                            </span>
+                            <a href="#quiz-section" class="text-xs font-bold text-[#9a6a24] hover:underline flex items-center gap-1">
+                                Medir no Quiz <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Bloco 2: O Loop de Fuga -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-md flex flex-col justify-between hover:border-[#9a6a24]/50 transition duration-300 group">
+                        <div class="space-y-4">
+                            <!-- SVG Loop Infinito / Escapismo Dopaminérgico -->
+                            <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-[#9a6a24] border border-[#9a6a24]/20">
+                                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M22 12c0-3-2.5-5.5-5.5-5.5S11 12 11 12s-2.5 5.5-5.5 5.5S0 15 0 12s2.5-5.5 5.5-5.5S11 12 11 12s2.5-5.5 5.5-5.5S22 9 22 12z" stroke-linecap="round"/>
+                                    <circle cx="16.5" cy="12" r="1.5" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-base font-bold text-[#0f172a] uppercase tracking-tight">2. O Loop de Fuga</h3>
+                                <p class="text-xs text-slate-500 leading-relaxed">
+                                    Uma urgência involuntária de abrir redes sociais, checar e-mails sem importância ou limpar a mesa. Seu cérebro sequestra o foco para obter doses rápidas de dopamina e aliviar a ansiedade.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-slate-100 mt-4 flex items-center justify-between">
+                            <span class="text-[9px] font-bold text-[#1e40af] uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#1e40af]"></span> Sequestro Amigdalar
+                            </span>
+                            <a href="#quiz-section" class="text-xs font-bold text-[#9a6a24] hover:underline flex items-center gap-1">
+                                Medir no Quiz <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Bloco 3: A Paralisia por Decisão -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-200 shadow-md flex flex-col justify-between hover:border-[#9a6a24]/50 transition duration-300 group">
+                        <div class="space-y-4">
+                            <!-- SVG Bifurcação / Fadiga de Escolha -->
+                            <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-[#9a6a24] border border-[#9a6a24]/20">
+                                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 22V12m0 0l-5-5m5 5l5-5M4 4h6v6H4V4zm10 0h6v6h-6V4z" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-base font-bold text-[#0f172a] uppercase tracking-tight">3. A Paralisia de Escolha</h3>
+                                <p class="text-xs text-slate-500 leading-relaxed">
+                                    Definir prioridades básicas ou planejar as próximas horas gera um cansaço absurdo. O acúmulo de pequenas decisões drena sua energia mental, forçando você a desistir antes de começar.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-slate-100 mt-4 flex items-center justify-between">
+                            <span class="text-[9px] font-bold text-[#1e40af] uppercase tracking-wider flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#1e40af]"></span> Fadiga de Escolhas
+                            </span>
+                            <a href="#quiz-section" class="text-xs font-bold text-[#9a6a24] hover:underline flex items-center gap-1">
+                                Medir no Quiz <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="text-center pt-2">
+                    <p class="text-xs text-slate-400 italic">"Sentir-se compreendido é o primeiro estágio de regulação do sistema nervoso."</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- JORNADA PASSO 4: O ALÍVIO DE CULPA -->
+        <section class="py-16 px-4 relative z-10">
+            <div class="max-w-4xl mx-auto space-y-8">
+                
+                <!-- Indicador de Sequência -->
+                <div class="flex items-center justify-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#9a6a24] text-white flex items-center justify-center font-bold text-xs shadow-md">3</div>
+                    <div class="h-[2px] w-12 bg-[#9a6a24]/30"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#9a6a24]">Alívio e Acolhimento Biológico</span>
+                </div>
+
+                <div class="glass-panel p-8 sm:p-10 rounded-3xl border shadow-lg space-y-6 bg-white/95">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2.5 bg-red-50 text-red-600 rounded-2xl border border-red-100">
+                            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                        </span>
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-red-600">Por que você se culpa tanto?</span>
+                            <h3 class="text-xl sm:text-2xl font-bold text-[#0f172a] uppercase leading-tight">Isto não é preguiça. É Sobrevivência.</h3>
+                        </div>
+                    </div>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed font-light">
+                        Se você passou os últimos meses se cobrando, sentindo culpa no final de cada dia ou se rotulando como "ineficiente", precisa entender uma verdade científica: <strong class="text-slate-950 font-bold">você está travando uma batalha contra o seu próprio sistema evolutivo de preservação e vai continuar perdendo enquanto tentar resolvê-la usando apenas a força de vontade bruta no escuro.</strong>
+                    </p>
+                    <p class="text-slate-600 text-sm sm:text-base leading-relaxed font-light">
+                        A procrastinação e o desvio de foco são caminhos de escape que seu cérebro desenvolve para protegê-lo de ansiedades e cobranças que ele não sabe como processar. O Workshop Reconstrução Neural não é sobre regras duras ou planilhas de rotina, mas sim sobre **iluminar seus bastidores biológicos e reorganizar sua energia mental para que sua mente funcione em harmonia com você.**
+                    </p>
+                    
+                    <!-- Comparativo de Ação -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                        <div class="space-y-2">
+                            <h5 class="text-xs font-bold uppercase text-slate-400 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> O Limbo da Reatividade
+                            </h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">Você acorda determinado, vê o tamanho das obrigações, sente uma pequena ansiedade corporal de peso (a névoa) e seu cérebro busca conforto imediato te tirando do controle analítico e jogando você na procrastinação.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h5 class="text-xs font-bold uppercase text-[#9a6a24] flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#9a6a24]"></span> A Clareza do Direcionamento
+                            </h5>
+                            <p class="text-xs text-slate-500 leading-relaxed">Mapear esse gatilho de forma consciente, reequilibrar os biomarcadores cerebrais nos primeiros 90 segundos do dia e devolver o controle de forma suave ao seu córtex pré-frontal.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JORNADA PASSO 5: O PLANO DE SAÍDA (Cronograma Técnico Separado) -->
+        <section id="syllabus" class="py-16 px-4 bg-[#f4f2eb]/40 border-t border-b border-[#9a6a24]/10 relative z-10 scroll-mt-20">
+            <div class="max-w-4xl mx-auto space-y-12">
+                
+                <!-- Indicador de Sequência -->
+                <div class="flex items-center justify-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#9a6a24] text-white flex items-center justify-center font-bold text-xs shadow-md">4</div>
+                    <div class="h-[2px] w-12 bg-[#9a6a24]/30"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#9a6a24]">Plano Prático de Restabelecimento</span>
+                </div>
+
+                <div class="text-center space-y-3">
+                    <h3 class="text-2xl sm:text-3xl font-bold text-[#0f172a] uppercase">O Plano de 2 Horas Sem Sobrecarga</h3>
+                    <p class="text-slate-600 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                        Uma intervenção cirúrgica projetada em 3 blocos lógicos estruturados para não sobrecarregar sua mente.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="flex gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-[#9a6a24]/30 transition">
+                        <span class="text-[#9a6a24] font-mono text-sm font-black shrink-0 uppercase tracking-widest">Bloco I</span>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-[#0f172a] uppercase text-sm sm:text-base">Mapeamento da Reatividade Neuroquímica</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Mapeamento dos gatilhos que desligam o seu foco voluntário e o funcionamento biológico do estado de névoa mental.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-[#9a6a24]/30 transition">
+                        <span class="text-[#9a6a24] font-mono text-sm font-black shrink-0 uppercase tracking-widest">Bloco II</span>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-[#0f172a] uppercase text-sm sm:text-base">Regulação Psíquica & Psicanálise Aplicada</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Decodificação dos impulsos de fuga que agem silenciosamente no seu inconsciente e como restabelecer o domínio consciente.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-[#9a6a24]/30 transition">
+                        <span class="text-[#9a6a24] font-mono text-sm font-black shrink-0 uppercase tracking-widest">Bloco III</span>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-[#0f172a] uppercase text-sm sm:text-base">Workbook Clínico de Contingência</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">Seu roteiro prático individual para desarmar a procrastinação diária nos momentos em que você mais precisar de foco.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JORNADA PASSO 6: O ESPECIALISTA -->
+        <section class="py-16 bg-white px-4 relative z-10">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass-panel p-8 sm:p-10 rounded-3xl flex flex-col md:flex-row items-center gap-8 border shadow-md">
+                    <div class="w-32 h-32 rounded-full bg-gradient-to-br from-[#0f172a] to-[#9a6a24] flex items-center justify-center font-bold text-white text-3xl border-2 border-white shrink-0 shadow-lg">
+                        WC
+                    </div>
+                    <div class="space-y-4 text-center md:text-left">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#9a6a24]">Seu Mentor</span>
+                        <h3 class="text-2xl font-black text-[#0f172a] uppercase">William Carvalho</h3>
+                        <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Neurocientista Clínico & Psicanalista</p>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-light">
+                            Especialista em comportamento impulsivo e processos de reatividade cognitiva profunda. Sua atuação faz a ponte científica entre a biologia do sistema nervoso e a dinâmica psicológica profunda da mente humana, ajudando centenas de profissionais a romperem com a exaustão e recuperarem a clareza operacional.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JORNADA PASSO 7: A ESCOLHA FACILITADA -->
+        <section id="plans-section" class="py-16 px-4 bg-[#f4f2eb]/40 border-t border-[#9a6a24]/10 scroll-mt-20 relative z-10">
+            <div class="max-w-5xl mx-auto space-y-12">
+                
+                <!-- Indicador de Sequência -->
+                <div class="flex items-center justify-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#9a6a24] text-white flex items-center justify-center font-bold text-xs shadow-md">5</div>
+                    <div class="h-[2px] w-12 bg-[#9a6a24]/30"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#9a6a24]">Seu Próximo Passo Consciente</span>
+                </div>
+
+                <div class="text-center space-y-3">
+                    <h3 class="text-2xl sm:text-3xl font-bold text-[#0f172a] uppercase">Adesão para a Turma Fundadora</h3>
+                    <p class="text-slate-600 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                        Escolha o nível de acompanhamento adequado para o seu momento de vida e recupere o controle.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <!-- Ingresso Padrão -->
+                    <div class="glass-panel p-8 rounded-2xl flex flex-col justify-between border relative hover:border-[#9a6a24]/40 transition duration-300 shadow-sm bg-white" id="plan-standard-box">
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-sm font-black uppercase tracking-wider text-[#0f172a]">Ingresso Padrão</h4>
+                                <span class="bg-slate-100 text-slate-500 px-2.5 py-1 text-[9px] font-bold tracking-wider uppercase rounded border border-slate-250">Workshop</span>
+                            </div>
+                            <p class="text-xs text-slate-550 leading-relaxed">A imersão para você decodificar seus padrões comportamentais fundamentais, interromper as reatividades e receber seu workbook clínico de apoio.</p>
+                            <div class="text-3xl font-black text-[#0f172a]">R$ 97,00</div>
+                            <ul class="space-y-2.5 text-xs text-slate-600 border-t border-slate-100 pt-4">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Participação ao vivo de 2 horas</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Workbook Digital de Exercícios</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Gravação completa por 30 dias</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlan('Padrão', 97.00)" class="w-full mt-8 py-3 bg-[#0f172a] hover:bg-slate-800 text-white font-bold rounded-lg text-xs uppercase tracking-wider transition">
+                            Escolher Plano Padrão
+                        </button>
+                    </div>
+
+                    <!-- Passaporte VIP -->
+                    <div class="glass-panel p-8 rounded-2xl flex flex-col justify-between border-2 border-[#9a6a24] relative hover:border-[#9a6a24] transition duration-300 shadow-lg bg-white" id="plan-vip-box">
+                        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#9a6a24] text-white px-3 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full shadow-md whitespace-nowrap">Altamente Recomendado para Foco Coletivo</span>
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-sm font-black uppercase tracking-wider text-[#9a6a24]">Passaporte VIP</h4>
+                                <span class="bg-amber-50 text-[#9a6a24] border border-[#9a6a24]/20 px-2.5 py-1 text-[9px] font-bold tracking-wider uppercase rounded">Exclusivo</span>
+                            </div>
+                            <p class="text-xs text-slate-550 leading-relaxed">O acompanhamento personalizado. Perfeito para quem deseja analisar o seu caso e seu mapa de autossabotagem individual sob o meu rigor clínico.</p>
+                            <div class="text-3xl font-black text-[#9a6a24]">R$ 197,00</div>
+                            <ul class="space-y-2.5 text-xs text-slate-600 border-t border-[#9a6a24]/10 pt-4">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Participação ao vivo de 2 horas</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Workbook Digital de Exercícios</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Gravação completa para sempre</li>
+                                <li class="flex items-center gap-2 font-bold text-[#9a6a24]"><i data-lucide="sparkles" class="w-4 h-4 text-[#9a6a24]"></i> Análise de Gatilhos Individual Pós-evento</li>
+                            </ul>
+                        </div>
+                        <button onclick="selectPlan('VIP', 197.00)" class="w-full mt-8 py-3 bg-gradient-to-r from-[#9a6a24] to-[#784f17] text-white font-bold rounded-lg text-xs uppercase tracking-wider transition shadow-md">
+                            Escolher Passaporte VIP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detalhes do VIP -->
+                <div class="max-w-2xl mx-auto glass-panel p-6 rounded-2xl border border-slate-200/80 space-y-4 shadow-sm bg-white">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-[#9a6a24] flex items-center gap-1.5 justify-center sm:justify-start">
+                        <i data-lucide="lock" class="w-4 h-4 text-[#9a6a24]"></i> Como funciona a Análise Individual do Passaporte VIP?
+                    </h4>
+                    <p class="text-slate-600 text-xs leading-relaxed font-light text-center sm:text-left">
+                        Entendo profundamente o medo da exposição pública. Minha atuação clínica assegura um **espaço totalmente reservado, ético e seguro**. Após a imersão ao vivo, você receberá um protocolo privado de triagem de comportamento. Analisarei suas respostas individualmente de forma confidencial e devolverei o seu mapa exato de comportamento e um roteiro personalizado de contenção de impulsos por áudio privado ou texto assíncrono. Sem julgamento, com absoluto rigor clínico.
+                    </p>
+                </div>
+
+                <!-- Checkout Pix Seguro -->
+                <div id="checkout-container" class="hidden max-w-lg mx-auto bg-white border border-[#9a6a24]/25 rounded-2xl p-6 sm:p-8 space-y-6 relative z-10 shadow-xl">
+                    <div class="text-center pb-4 border-b border-slate-100">
+                        <span class="text-[9px] font-bold tracking-widest text-[#1e40af] uppercase">Ambiente de Inscrição Seguro</span>
+                        <h4 class="text-lg font-bold text-slate-900 uppercase mt-1">Garantir Meu Acesso</h4>
+                    </div>
+
+                    <!-- Selo de Sigilo Clínico -->
+                    <div class="bg-blue-50/50 border border-blue-100 p-3.5 rounded-lg flex items-start gap-2.5">
+                        <i data-lucide="shield" class="w-5 h-5 text-[#1e40af] shrink-0 mt-0.5"></i>
+                        <p class="text-[10px] text-blue-900 leading-relaxed font-light">
+                            <strong>Garantia de Sigilo Profissional:</strong> Suas respostas de autodiagnóstico, dados de triagem do passaporte VIP e dados cadastrais são plenamente assegurados sob o compromisso ético da psicanálise. Sua privacidade é inviolável.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">Formato Escolhido:</span>
+                            <div id="checkout-selected-plan-name" class="font-bold text-slate-900 mt-0.5">Passaporte VIP</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">Investimento:</span>
+                            <div id="checkout-selected-plan-price" class="font-bold text-[#9a6a24] text-sm sm:text-base">R$ 197,00</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Seu Nome Completo</label>
+                        <input type="text" id="checkout-user-name" placeholder="Digite seu nome para emissão" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:border-[#9a6a24] text-xs transition">
+                    </div>
+
+                    <!-- QR Code Oficial e Chave Copia/Cola -->
+                    <div class="flex flex-col items-center space-y-4 py-2">
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 relative shadow-sm">
+                            <img src="image_e949a6.png" id="checkout-qrcode-img" alt="QR Code Oficial" class="w-36 h-36 object-contain mx-auto" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=comercialwsc@gmail.com'">
+                            <span class="absolute -top-2 bg-[#0f172a] text-white border border-white/10 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider whitespace-nowrap left-1/2 -translate-x-1/2">
+                                QR CODE OFICIAL
+                            </span>
+                        </div>
+                        
+                        <div class="w-full space-y-2">
+                            <div class="text-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">Chave Pix Copia e Cola (E-mail)</div>
+                            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-center relative flex items-center justify-between">
+                                <span id="checkout-pix-key" class="font-mono text-xs text-[#9a6a24] font-bold select-all overflow-hidden text-ellipsis whitespace-nowrap mr-2">comercialwsc@gmail.com</span>
+                                <button onclick="copyCheckoutPixKey()" class="px-3 py-1.5 bg-[#0f172a] hover:bg-slate-800 text-white text-[10px] font-bold rounded uppercase transition shrink-0 flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3 h-3"></i> Copiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <button onclick="sendReceiptWhatsapp()" class="w-full py-3.5 bg-[#0f172a] hover:bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                            <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i> Enviar Comprovante por WhatsApp
+                        </button>
+                        <p class="text-[9px] text-slate-400 text-center leading-relaxed px-2">
+                            💡 <strong>Pix no Cartão de Crédito:</strong> Para parcelar a inscrição, abra o app do seu banco, selecione a leitura do QR Code acima e marque a opção <strong>"Pagar com Cartão de Crédito"</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Perguntas Frequentes -->
+        <section class="py-16 bg-white px-4 border-t border-slate-100 relative z-10">
+            <div class="max-w-3xl mx-auto space-y-8">
+                <div class="text-center space-y-2">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#1e40af]">DÚVIDAS</span>
+                    <h3 class="text-2xl font-bold text-[#0f172a] uppercase">Esclarecimentos Clínicos</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="glass-panel rounded-xl p-5 border border-slate-150 cursor-pointer shadow-sm hover:border-slate-200 transition" onclick="toggleFaq(1)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase">Quem deve participar deste Workshop?</h4>
+                            <i data-lucide="chevron-down" id="faq-icon-1" class="w-4 h-4 text-slate-500 transition-transform"></i>
+                        </div>
+                        <p id="faq-ans-1" class="hidden text-xs text-slate-550 mt-3 leading-relaxed">
+                            Este programa foi desenvolvido para profissionais liberais, empresários, líderes e pessoas que se percebem paralisadas sob estresse ou diante de decisões difíceis, e que necessitam de intervenção biológica e psicológica de contingência rápida.
+                        </p>
+                    </div>
+
+                    <div class="glass-panel rounded-xl p-5 border border-slate-150 cursor-pointer shadow-sm hover:border-slate-200 transition" onclick="toggleFaq(2)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase">Como a psicanálise ajuda no controle do impulso?</h4>
+                            <i data-lucide="chevron-down" id="faq-icon-2" class="w-4 h-4 text-slate-500 transition-transform"></i>
+                        </div>
+                        <p id="faq-ans-2" class="hidden text-xs text-slate-550 mt-3 leading-relaxed">
+                            Enquanto a neurociência estuda o biomarcador fisiológico do impulso no cérebro, a psicanálise decodifica a linguagem desse escape inconsciente, atuando na raiz psíquica que gera a necessidade do alívio impulsivo.
+                        </p>
+                    </div>
+
+                    <div class="glass-panel rounded-xl p-5 border border-slate-150 cursor-pointer shadow-sm hover:border-slate-200 transition" onclick="toggleFaq(3)">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 uppercase">A análise individual do VIP é exposta?</h4>
+                            <i data-lucide="chevron-down" id="faq-icon-3" class="w-4 h-4 text-slate-500 transition-transform"></i>
+                        </div>
+                        <p id="faq-ans-3" class="hidden text-xs text-slate-550 mt-3 leading-relaxed">
+                            Não. A análise é estritamente confidencial, individual e realizada em conformidade com o sigilo profissional clínico, sem qualquer exposição perante os demais integrantes do workshop.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-12 bg-[#faf9f5]/80 border-t border-slate-200/60 text-center text-slate-400 text-xs space-y-4 px-4 relative z-10">
+            <p>© 2026 William Carvalho • Neurociência Clínica & Psicanálise. Todos os direitos reservados.</p>
+            <div class="flex justify-center gap-4 text-[10px]">
+                <a href="#syllabus" class="hover:text-slate-600">Termos de Uso</a>
+                <span>•</span>
+                <a href="#plans-section" class="hover:text-slate-600">Suporte Técnico</a>
+                <span>•</span>
+                <button onclick="openAdminGateway()" class="hover:text-slate-600 transition flex items-center gap-1 mx-auto text-[10px] bg-transparent border-0 cursor-pointer">
+                    <i data-lucide="settings" class="w-3 h-3"></i> Área Administrativa
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- GATEWAY DE ENTRADA DO ADMINISTRADOR -->
+    <div id="admin-gateway" class="hidden fixed inset-0 bg-[#0f172a]/95 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel max-w-sm w-full p-6 rounded-2xl border border-slate-200 space-y-6 shadow-2xl bg-white">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-slate-55 rounded-xl flex items-center justify-center mx-auto border border-slate-200">
+                    <i data-lucide="lock" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Acesso Comercial</h3>
+                <p class="text-xs text-slate-550">Identifique-se para acessar o CRM e os geradores de convite.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="password" id="admin-password-input" placeholder="Digite a chave de acesso" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-900 focus:outline-none focus:border-[#9a6a24] text-xs text-center font-bold">
+                <div class="flex gap-2">
+                    <button onclick="closeAdminGateway()" class="w-1/2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-650 rounded-lg text-xs font-bold uppercase transition">Cancelar</button>
+                    <button onclick="verifyAdminPassword()" class="w-1/2 py-2 bg-[#0f172a] hover:bg-slate-800 text-white rounded-lg text-xs font-bold uppercase transition shadow-md">Avançar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTAINER DA PLATAFORMA DE CONTROLE (ADMIN PANEL) -->
+    <div id="admin-panel" class="hidden min-h-screen bg-[#faf9f5] text-slate-800 pb-12 select-none relative z-50">
+        <header class="mb-8 border-b border-[#9a6a24]/10 bg-white px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+            <div class="flex items-center gap-3">
+                <span class="p-2 bg-[#0f172a] text-[#faf9f5] rounded-xl shadow-md">🧠</span>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Painel de Vendas e Cobrança Elite</h1>
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Reconstrução Neural • Dashboard Administrativo</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="lockAdminPanel()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold uppercase transition flex items-center gap-1.5 border border-slate-200">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Voltar ao Site
+                </button>
+                <div class="flex items-center gap-3 bg-white border border-[#9a6a24]/10 p-2 px-3 rounded-xl shadow-sm">
+                    <div class="w-8 h-8 rounded-full bg-[#9a6a24] flex items-center justify-center font-bold text-white text-xs">
+                        WC
+                    </div>
+                    <div class="hidden sm:block">
+                        <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-wider">William Carvalho</h4>
+                        <p class="text-[8px] text-slate-500 font-medium">Mentor Clínico</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menu Superior de Abas -->
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-4">
+                <button onclick="switchTab('tab-card')" id="btn-tab-card" class="tab-active px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-2 border border-transparent hover:bg-white shadow-sm text-slate-700">
+                    <i data-lucide="image" class="w-4 h-4 text-[#9a6a24]"></i> 1. Card de Convite
+                </button>
+                <button onclick="switchTab('tab-pix')" id="btn-tab-pix" class="px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-2 border border-transparent hover:bg-white text-slate-650">
+                    <i data-lucide="receipt" class="w-4 h-4 text-emerald-600"></i> 2. Fatura Digital Pix
+                </button>
+                <button onclick="switchTab('tab-crm')" id="btn-tab-crm" class="px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-2 border border-transparent hover:bg-white text-slate-650">
+                    <i data-lucide="users" class="w-4 h-4 text-[#1e40af]"></i> 3. Gestão de Clientes (CRM)
+                </button>
+                <button onclick="switchTab('tab-script')" id="btn-tab-script" class="px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center gap-2 border border-transparent hover:bg-white text-slate-650">
+                    <i data-lucide="message-square" class="w-4 h-4 text-indigo-500"></i> 4. Scripts de WhatsApp
+                </button>
+            </div>
+
+            <!-- CONTEÚDO DAS ABAS -->
+            
+            <!-- ABA 1: GERADOR DE CARD DE CONVITE -->
+            <div id="tab-card" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="glass-panel rounded-xl p-6 shadow-md space-y-4 bg-white border border-slate-200">
+                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-4 h-4 text-[#9a6a24]"></i> Personalizar Convite
+                        </h2>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Título</label>
+                                <input type="text" id="card-title" value="Reconstrução" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Subtítulo</label>
+                                <input type="text" id="card-subtitle" value="Neural" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Tagline</label>
+                                <input type="text" id="card-tagline" value="Você Não É o Impulso." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Especialista</label>
+                                <input type="text" id="card-author" value="William Carvalho" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Credenciais</label>
+                                <input type="text" id="card-credentials" value="Neurocientista Clínico | Psicanalista" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                        </div>
+                        <button onclick="downloadElement('capture-card', 'convite-reconstrucao-neural')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition text-xs uppercase tracking-wider shadow-md">
+                            <i data-lucide="download" class="w-4 h-4"></i> Exportar Card PNG
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex flex-col items-center justify-start bg-white border border-slate-200 rounded-xl p-4 sm:p-8 shadow-sm overflow-hidden">
+                    <span class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-4 text-center">Pré-visualização do Convite</span>
+                    
+                    <div class="preview-scale w-full flex justify-center">
+                        <div id="capture-card" class="w-[380px] sm:w-[410px] h-[570px] theme-target grid-bg p-8 flex flex-col justify-between relative rounded-xl shadow-lg border border-slate-200 overflow-hidden select-none shrink-0 bg-white">
+                            <div class="absolute right-[30px] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-[#9a6a24]/10 to-transparent"></div>
+                            <div class="relative z-10 border-b border-[#9a6a24]/10 pb-4">
+                                <span id="preview-tag-invite" class="text-[9px] font-bold tracking-[0.3em] text-[#9a6a24] uppercase">CONVITE EXCLUSIVO</span>
+                            </div>
+                            <div class="relative z-10 -mt-10">
+                                <h2 class="text-3xl font-black uppercase leading-none tracking-tight text-slate-900">
+                                    <span id="preview-card-title" class="block">Reconstrução</span>
+                                    <span id="preview-card-subtitle" class="block text-[#9a6a24] mt-1">Neural</span>
+                                </h2>
+                                <div id="preview-card-tagline" class="text-xs font-bold text-[#1e40af] border-l-4 border-[#1e40af] pl-3 mt-4 mb-6">
+                                    Você Não É o Impulso.
+                                </div>
+                                <div class="bg-slate-50 border border-slate-150 p-4 rounded-lg space-y-1.5 shadow-sm">
+                                    <div class="flex justify-between text-xs text-slate-600"><span>Programa:</span><strong class="text-slate-900 font-bold">Workshop Prático</strong></div>
+                                    <div class="flex justify-between text-xs text-slate-600"><span>Acesso:</span><strong class="text-slate-900 font-bold">Ambiente Digital Fechado</strong></div>
+                                    <div class="flex justify-between text-xs text-slate-600"><span>Status:</span><strong class="text-slate-900 font-bold">Turma Fundadora</strong></div>
+                                </div>
+                            </div>
+                            <div class="relative z-10 flex flex-col items-start border-t border-slate-150 pt-4">
+                                <div id="preview-card-author" class="text-sm font-black text-slate-900 uppercase tracking-wide">William Carvalho</div>
+                                <div id="preview-card-credentials" class="text-[9px] text-slate-550 mt-0.5 font-semibold">Neurocientista Clínico | Psicanalista</div>
+                                <span class="mt-2.5 bg-[#9a6a24] text-white px-2.5 py-0.5 rounded-sm text-[8px] font-bold uppercase tracking-wider">Acesso Credenciado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 2: GERADOR DE FATURA PIX PERSONALIZADA -->
+            <div id="tab-pix" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="glass-panel rounded-xl p-6 shadow-md space-y-4 bg-white border border-slate-200">
+                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-4 h-4 text-emerald-600"></i> Criar Fatura de Adesão
+                        </h2>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Nome do Cliente</label>
+                                <input type="text" id="pix-client" value="Dr. Henrique Silva" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Descrição do Item</label>
+                                <input type="text" id="pix-product-name" value="Workshop Reconstrução Neural — VIP" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Valor (R$)</label>
+                                    <input type="text" id="pix-custom-price" value="197,00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Origem QR Code</label>
+                                    <select id="qr-code-source" onchange="updateQRCodeSource()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:border-[#9a6a24] transition">
+                                        <option value="static">Utilizar imagem_e949a6.png original</option>
+                                        <option value="dynamic">Gerar QR Code Dinâmico</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="saveInvoiceToCRM()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition border border-slate-300">
+                                Registrar CRM
+                            </button>
+                            <button onclick="downloadElement('capture-pix', 'fatura-adesao-pix')" class="w-1/2 bg-[#10b981] hover:bg-[#059669] text-white font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition shadow-sm">
+                                Baixar Fatura PNG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex flex-col items-center justify-start bg-white border border-slate-200 rounded-xl p-4 sm:p-8 shadow-sm overflow-hidden">
+                    <span class="text-xs font-semibold tracking-widest text-slate-500 uppercase mb-4 text-center">Pré-visualização da Fatura Comercial</span>
+                    
+                    <div class="preview-scale w-full flex justify-center">
+                        <div id="capture-pix" class="w-[380px] sm:w-[410px] h-[590px] theme-target grid-bg p-8 flex flex-col justify-between relative rounded-xl shadow-lg border border-slate-200 overflow-hidden select-none shrink-0 bg-white">
+                            <div class="relative z-10 flex justify-between items-center border-b border-slate-150 pb-4">
+                                <div class="flex flex-col">
+                                    <span class="text-[8px] font-bold tracking-[0.2em] text-[#9a6a24] uppercase">DOCUMENTO DE ADESÃO</span>
+                                    <span class="text-[10px] text-slate-500 font-semibold">Fatura Oficial de Credenciamento</span>
+                                </div>
+                                <span class="bg-[#10b981]/10 text-[#059669] border border-[#10b981]/30 px-2.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider">Pix Liberado</span>
+                            </div>
+                            <div class="relative z-10 mt-2">
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Adesão Preparada Para:</span>
+                                <div id="preview-pix-client" class="text-sm font-bold text-slate-900 mt-0.5">Dr. Henrique Silva</div>
+                                <div class="mt-3 bg-slate-50 border border-slate-150 p-3.5 rounded-lg flex justify-between items-center shadow-inner">
+                                    <div class="max-w-[70%]">
+                                        <div class="text-[8px] font-bold text-[#1e40af] uppercase tracking-wider">PRODUTO SELECIONADO</div>
+                                        <div id="preview-pix-item-name" class="text-xs font-bold text-slate-900 mt-0.5 truncate">Workshop Reconstrução Neural — VIP</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[8px] font-bold text-slate-400 uppercase">VALOR</div>
+                                        <div id="preview-pix-price" class="text-xs font-bold text-[#9a6a24]">R$ 197,00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="relative z-10 flex flex-col items-center">
+                                <div class="bg-white p-2.5 rounded-xl shadow-md border border-slate-250 relative">
+                                    <img src="image_e949a6.png" id="panel-qr-code-img" alt="QR Code" class="w-28 h-28 object-contain mx-auto" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=comercialwsc@gmail.com'">
+                                </div>
+                            </div>
+                            <div class="relative z-10 bg-slate-50 border border-slate-150 p-2.5 rounded-lg text-center shadow-inner">
+                                <div class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Chave Pix Copia e Cola (E-mail)</div>
+                                <div class="text-[10px] font-mono font-bold text-[#10b981] mt-0.5 select-all break-all">comercialwsc@gmail.com</div>
+                                <div class="text-[8px] text-slate-500 mt-1">Favorecido: <strong class="text-slate-800 font-semibold">William Santos de Carvalho</strong></div>
+                            </div>
+                            <div class="relative z-10 border-t border-slate-150 pt-3 flex flex-col items-center">
+                                <p class="text-[8px] text-slate-500 text-center leading-relaxed">Plataforma Oficial de Vendas • William Carvalho</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 3: GESTÃO DE CLIENTES (CRM LOCAL) -->
+            <div id="tab-crm" class="tab-content hidden space-y-6">
+                <!-- Banner de Alerta de Confirmação customizado -->
+                <div id="crm-confirm-banner" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 flex justify-between items-center text-xs text-red-900 transition-all">
+                    <p class="font-medium">⚠️ Tem certeza de que deseja apagar permanentemente toda a sua base de dados local de clientes?</p>
+                    <div class="flex gap-2">
+                        <button onclick="dismissCRMConfirmation()" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-bold">Cancelar</button>
+                        <button onclick="executeCRMReset()" class="px-3 py-1.5 bg-red-600 text-white rounded-lg font-bold">Confirmar Exclusão</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Faturamento Confirmado</p>
+                        <h3 id="crm-stat-revenue" class="text-lg font-bold text-slate-900 mt-1">R$ 0,00</h3>
+                        <p id="crm-stat-count-paid" class="text-[9px] text-emerald-600 font-bold mt-0.5">0 aprovados</p>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Faturamento Pendente</p>
+                        <h3 id="crm-stat-pending" class="text-lg font-bold text-slate-900 mt-1">R$ 0,00</h3>
+                        <p id="crm-stat-count-pending" class="text-[9px] text-amber-600 font-bold mt-0.5">0 aguardando</p>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acessos Emitidos</p>
+                        <h3 id="crm-stat-total" class="text-lg font-bold text-slate-900 mt-1">0</h3>
+                        <p class="text-[9px] text-slate-400 font-bold mt-0.5">Membros catalogados</p>
+                    </div>
+                    <div class="glass-panel p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Conversão Média</p>
+                        <h3 id="crm-stat-conversion" class="text-lg font-bold text-slate-900 mt-1">0%</h3>
+                        <p class="text-[9px] text-indigo-600 font-bold mt-0.5">Eficiência de vendas</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-panel p-5 rounded-xl space-y-4 h-fit bg-white border border-slate-200">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase border-b border-slate-100 pb-2 font-bold tracking-wider">Registrar Lead Manual</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Cliente</label>
+                                <input type="text" id="crm-client-name" placeholder="Ex: Dr. Thiago Santos" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-xs focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Plano / Produto</label>
+                                <input type="text" id="crm-product" value="Workshop Reconstrução Neural — VIP" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-xs focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Preço (R$)</label>
+                                    <input type="text" id="crm-price" value="197,00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-xs focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status do Funil</label>
+                                    <select id="crm-status" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-xs focus:outline-none">
+                                        <option value="pending">Aguardando Contato</option>
+                                        <option value="sent">Fatura Enviada</option>
+                                        <option value="paid">Confirmado / Pago</option>
+                                        <option value="delivered">Material Entregue</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="addCRMRecord()" class="w-full bg-slate-950 hover:bg-slate-850 text-white font-bold py-2 rounded-lg text-xs uppercase tracking-wider shadow-sm">
+                                Gravar no Pipeline
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-xl flex flex-col h-[410px] bg-white border border-slate-200">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2 mb-2">
+                            <h3 class="text-xs font-bold text-slate-900 uppercase font-bold tracking-wider">Pipeline de Faturamento Expandido</h3>
+                            <button onclick="triggerCRMResetConfirmation()" class="text-[9px] text-red-600 hover:text-red-500 font-bold uppercase">Limpar Histórico</button>
+                        </div>
+                        <div class="overflow-y-auto flex-grow custom-scrollbar overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[500px]">
+                                <thead>
+                                    <tr class="border-b border-slate-150 text-[9px] text-slate-400 uppercase tracking-wider">
+                                        <th class="py-2">Cliente</th>
+                                        <th class="py-2">Plano</th>
+                                        <th class="py-2">Preço</th>
+                                        <th class="py-2 text-center">Pipeline</th>
+                                        <th class="py-2 text-right">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="crm-table-body" class="text-xs text-slate-700"></tbody>
+                            </table>
+                            <div id="crm-empty-state" class="flex flex-col items-center justify-center h-full py-8 text-center text-slate-300">
+                                <i data-lucide="folder-open" class="w-6 h-6 mb-1 text-slate-400"></i>
+                                <p class="text-[10px]">Sem registros cadastrados.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 4: SCRIPTS DE VENDAS E CONVERSÃO -->
+            <div id="tab-script" class="tab-content hidden max-w-4xl mx-auto">
+                <div class="glass-panel rounded-xl p-6 shadow-md space-y-6 bg-white border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 uppercase">Gerador de Abordagem Personalizada</h3>
+                            <p class="text-[10px] text-slate-400">Insira o nome do cliente para atualizar todos os roteiros instantaneamente.</p>
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase mb-1">Nome do Lead</label>
+                            <input type="text" id="script-lead-name" value="Dr. Henrique" oninput="updateScriptTexts()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-900 text-xs focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-[9px] font-bold uppercase">
+                                <span class="text-[#9a6a24]">MENSAGEM I — O CONVITE PREMIUM (Aba 1)</span>
+                            </div>
+                            <textarea id="script-out-invite" readonly class="w-full h-36 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] font-mono text-slate-600 focus:outline-none resize-none custom-scrollbar"></textarea>
+                            <button onclick="copyToClipboard('script-out-invite', 'btn-copy-invite')" id="btn-copy-invite" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition border border-slate-200">
+                                Copiar Script de Convite
+                            </button>
+                        </div>
+
+                        <div class="space-y-1.5 border-t border-slate-100 pt-4">
+                            <div class="flex justify-between text-[9px] font-bold uppercase">
+                                <span class="text-emerald-600">MENSAGEM II — INSTRUÇÕES E FATURA PIX (Aba 2)</span>
+                            </div>
+                            <textarea id="script-out-billing" readonly class="w-full h-32 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] font-mono text-slate-600 focus:outline-none resize-none custom-scrollbar"></textarea>
+                            <button onclick="copyToClipboard('script-out-billing', 'btn-copy-billing')" id="btn-copy-billing" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition border border-slate-200">
+                                Copiar Script de Cobrança
+                            </button>
+                        </div>
+
+                        <div class="space-y-1.5 border-t border-slate-100 pt-4">
+                            <div class="flex justify-between text-[9px] font-bold uppercase">
+                                <span class="text-[#1e40af]">MENSAGEM III — BOAS-VINDAS E VALIDAÇÃO</span>
+                            </div>
+                            <textarea id="script-out-welcome" readonly class="w-full h-32 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] font-mono text-slate-600 focus:outline-none resize-none custom-scrollbar"></textarea>
+                            <button onclick="copyToClipboard('script-out-welcome', 'btn-copy-welcome')" id="btn-copy-welcome" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition border border-slate-200">
+                                Copiar Script de Boas-Vindas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Flutuante -->
+        <div id="toast-message" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-lg font-bold shadow-2xl transition duration-300 transform translate-y-20 opacity-0 pointer-events-none z-[110] flex items-center gap-2 text-xs">
+            <span>✓</span> <span id="toast-text">Copiado!</span>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT AVANÇADA -->
+    <script>
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let points = [];
+        let mouse = { x: null, y: null, radius: 150 };
+
+        function initCanvas() {
+            if (!canvas) return;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            points = [];
+            const count = Math.min(Math.floor(window.innerWidth / 18), 70);
+            for(let i = 0; i < count; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.25,
+                    vy: (Math.random() - 0.5) * 0.25,
+                    radius: Math.random() * 1.5 + 1
+                });
+            }
+        }
+
+        function drawCanvas() {
+            if (!canvas) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < points.length; i++) {
+                let p1 = points[i];
+                p1.x += p1.vx;
+                p1.y += p1.vy;
+
+                if (p1.x < 0 || p1.x > canvas.width) p1.vx *= -1;
+                if (p1.y < 0 || p1.y > canvas.height) p1.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p1.x, p1.y, p1.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#9a6a24'; /* Ouro fosco elegante */
+                ctx.fill();
+
+                for (let j = i + 1; j < points.length; j++) {
+                    let p2 = points[j];
+                    let dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                    if (dist < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        let alpha = (1 - (dist / 130)) * 0.08;
+                        ctx.strokeStyle = `rgba(154, 106, 36, ${alpha})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+                
+                if (mouse.x !== null) {
+                    let distMouse = Math.hypot(p1.x - mouse.x, p1.y - mouse.y);
+                    if (distMouse < mouse.radius) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        let alpha = (1 - (distMouse / mouse.radius)) * 0.07;
+                        ctx.strokeStyle = `rgba(30, 64, 175, ${alpha})`; /* Toque sutil de azul */
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawCanvas);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        let quizScore = 0;
+        
+        function nextQuizStep(currentStep, scoreValue) {
+            quizScore += scoreValue;
+            document.getElementById(`step-${currentStep}`).classList.add('hidden');
+            document.getElementById(`step-${currentStep + 1}`).classList.remove('hidden');
+        }
+
+        function calculateQuizResult(scoreValue) {
+            quizScore += scoreValue;
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-result').classList.remove('hidden');
+
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+            const resultRec = document.getElementById('result-rec');
+
+            if (quizScore >= 22) {
+                resultTitle.innerText = "Sequestro Amigdalar Elevado";
+                resultDesc.innerText = "Suas respostas apontam que o seu cérebro límbico (emocional) está sobrepondo de forma crônica as decisões do seu córtex pré-frontal sob cansaço, criando loops involuntários de estagnação.";
+                resultRec.innerHTML = "Para desarmar esses loops involuntários sem precisar de esforço de vontade bruta no escuro, sugerimos que você escolha a via assistida do **Passaporte VIP**. Analisarei seu mapa pessoal de gatilhos em ambiente confidencial e prescreverei o seu roteiro individual de contingência de forma cirúrgica.";
+            } else if (quizScore >= 12) {
+                resultTitle.innerText = "Instabilidade de Foco Moderada";
+                resultDesc.innerText = "Seu foco e discernimento oscilam de forma severa baseados no seu nível de esgotamento e decisões acumuladas ao longo do dia.";
+                resultRec.innerHTML = "O **Ingresso Padrão** fornecerá o workbook clínico e os protocolos biológicos fundamentais para você conter as fugas dopaminérgicas e readquirir a clareza analítica diária.";
+            } else {
+                resultTitle.innerText = "Foco e Domínio Cognitivo Estáveis";
+                resultDesc.innerText = "Suas funções pré-frontais operam com autonomia na maior parte do tempo. Você possui estabilidade na execução das suas tarefas.";
+                resultRec.innerHTML = "O **Ingresso Padrão** é perfeitamente adequado para você entender os conceitos científicos de ponta e consolidar o seu modelo de regulação emocional.";
+            }
+        }
+
+        function scrollToVisualMapping() {
+            document.getElementById('visual-mapping').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleFaq(id) {
+            const answer = document.getElementById(`faq-ans-${id}`);
+            const icon = document.getElementById(`faq-icon-${id}`);
+            
+            if (answer.classList.contains('hidden')) {
+                answer.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                answer.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        let selectedPlanGlobal = "VIP";
+        let selectedPriceGlobal = 197.00;
+
+        function selectPlan(name, price) {
+            selectedPlanGlobal = name;
+            selectedPriceGlobal = price;
+            
+            document.getElementById('checkout-selected-plan-name').innerText = `Workshop Reconstrução Neural — ${name}`;
+            document.getElementById('checkout-selected-plan-price').innerText = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            
+            const checkoutBox = document.getElementById('checkout-container');
+            checkoutBox.classList.remove('hidden');
+            checkoutBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function copyCheckoutPixKey() {
+            const keyText = document.getElementById('checkout-pix-key').innerText;
+            copyTextToClipboard(keyText);
+            showToast('Chave Pix copiada!');
+        }
+
+        function sendReceiptWhatsapp() {
+            const name = document.getElementById('checkout-user-name').value.trim() || "[Meu Nome]";
+            const message = `Olá William! Acabei de garantir minha vaga no Workshop Reconstrução Neural (${selectedPlanGlobal} - R$ ${selectedPriceGlobal}). Meu nome é ${name}. Segue em anexo o comprovante.`;
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/5535984549696?text=${encodedMessage}`, '_blank');
+        }
+
+        function copyTextToClipboard(text) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+        }
+
+        function openAdminGateway() {
+            document.getElementById('admin-gateway').classList.remove('hidden');
+            document.getElementById('admin-password-input').focus();
+        }
+
+        function closeAdminGateway() {
+            document.getElementById('admin-gateway').classList.add('hidden');
+            document.getElementById('admin-password-input').value = "";
+        }
+
+        function verifyAdminPassword() {
+            const pass = document.getElementById('admin-password-input').value;
+            if (pass === 'neural2026') {
+                closeAdminGateway();
+                document.getElementById('public-landing').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                showToast('Painel Comercial Ativado!');
+                lucide.createIcons();
+            } else {
+                showToast('Chave incorreta.');
+            }
+        }
+
+        function lockAdminPanel() {
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('public-landing').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('[id^="btn-tab-"]').forEach(btn => btn.classList.remove('tab-active'));
+
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+            
+            lucide.createIcons();
+        }
+
+        // Sincronização automática de campos de Card e Fatura
+        const syncCardFields = [
+            { input: 'card-title', preview: 'preview-card-title' },
+            { input: 'card-subtitle', preview: 'preview-card-subtitle' },
+            { input: 'card-tagline', preview: 'preview-card-tagline' },
+            { input: 'card-author', preview: 'preview-card-author' },
+            { input: 'card-credentials', preview: 'preview-card-credentials' }
+        ];
+
+        syncCardFields.forEach(item => {
+            const inputEl = document.getElementById(item.input);
+            const previewEl = document.getElementById(item.preview);
+            if (inputEl && previewEl) {
+                inputEl.addEventListener('input', () => {
+                    previewEl.innerText = inputEl.value;
+                });
+            }
+        });
+
+        const pixClient = document.getElementById('pix-client');
+        const previewClient = document.getElementById('preview-pix-client');
+        if (pixClient && previewClient) {
+            pixClient.addEventListener('input', () => {
+                previewClient.innerText = pixClient.value;
+            });
+        }
+
+        const pixProd = document.getElementById('pix-product-name');
+        const previewProd = document.getElementById('preview-pix-item-name');
+        if (pixProd && previewProd) {
+            pixProd.addEventListener('input', () => {
+                previewProd.innerText = pixProd.value;
+                document.getElementById('crm-product').value = pixProd.value;
+            });
+        }
+
+        const pixPrice = document.getElementById('pix-custom-price');
+        const previewPrice = document.getElementById('preview-pix-price');
+        if (pixPrice && previewPrice) {
+            pixPrice.addEventListener('input', () => {
+                let val = parseFloat(pixPrice.value.replace(',', '.')) || 0;
+                previewPrice.innerText = "R$ " + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                document.getElementById('crm-price').value = pixPrice.value;
+                updateScriptTexts();
+            });
+        }
+
+        function updateQRCodeSource() {
+            const select = document.getElementById('qr-code-source');
+            const qrImg = document.getElementById('panel-qr-code-img');
+            if (select.value === 'dynamic') {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent('comercialwsc@gmail.com')}`;
+            } else {
+                qrImg.src = 'image_e949a6.png';
+            }
+        }
+
+        // Core do Pipeline de Vendas Local (CRM)
+        let crmRecords = [];
+
+        function loadCRMData() {
+            const saved = localStorage.getItem('mereconstruindo_crm');
+            if (saved) {
+                crmRecords = JSON.parse(saved);
+            }
+            renderCRM();
+        }
+
+        function addCRMRecord() {
+            const name = document.getElementById('crm-client-name').value.trim();
+            const product = document.getElementById('crm-product').value;
+            const price = parseFloat(document.getElementById('crm-price').value.replace(',', '.')) || 0;
+            const status = document.getElementById('crm-status').value;
+
+            if (!name) {
+                showToast("Por favor, digite o nome do cliente.");
+                return;
+            }
+
+            crmRecords.unshift({
+                id: Date.now(),
+                name: name,
+                product: product,
+                price: price,
+                status: status,
+                date: new Date().toLocaleDateString('pt-BR')
+            });
+
+            saveAndRenderCRM();
+            document.getElementById('crm-client-name').value = "";
+            showToast("Venda adicionada ao pipeline local!");
+        }
+
+        function saveInvoiceToCRM() {
+            const name = document.getElementById('pix-client').value.trim();
+            const product = document.getElementById('pix-product-name').value;
+            const price = parseFloat(document.getElementById('pix-custom-price').value.replace(',', '.')) || 0;
+
+            if (!name) {
+                showToast("Insira o nome do cliente na fatura.");
+                return;
+            }
+
+            crmRecords.unshift({
+                id: Date.now(),
+                name: name,
+                product: product,
+                price: price,
+                status: "sent",
+                date: new Date().toLocaleDateString('pt-BR')
+            });
+
+            saveAndRenderCRM();
+            showToast("Fatura registrada como enviada no CRM!");
+        }
+
+        function changePipelineStatus(id, newStatus) {
+            crmRecords = crmRecords.map(item => {
+                if (item.id === id) {
+                    item.status = newStatus;
+                }
+                return item;
+            });
+            saveAndRenderCRM();
+            showToast("Fase do pipeline atualizada!");
+        }
+
+        function deleteRecord(id) {
+            crmRecords = crmRecords.filter(item => item.id !== id);
+            saveAndRenderCRM();
+            showToast("Registro removido.");
+        }
+
+        // Fluxo de Confirmação customizado sem "confirm()" nativo do navegador
+        function triggerCRMResetConfirmation() {
+            document.getElementById('crm-confirm-banner').classList.remove('hidden');
+        }
+
+        function dismissCRMConfirmation() {
+            document.getElementById('crm-confirm-banner').classList.add('hidden');
+        }
+
+        function executeCRMReset() {
+            crmRecords = [];
+            saveAndRenderCRM();
+            dismissCRMConfirmation();
+            showToast("Banco de dados local totalmente resetado.");
+        }
+
+        function saveAndRenderCRM() {
+            localStorage.setItem('mereconstruindo_crm', JSON.stringify(crmRecords));
+            renderCRM();
+        }
+
+        function renderCRM() {
+            const tableBody = document.getElementById('crm-table-body');
+            const emptyState = document.getElementById('crm-empty-state');
+
+            if (crmRecords.length === 0) {
+                tableBody.innerHTML = "";
+                emptyState.classList.remove('hidden');
+                updateKPIS(0, 0, 0, 0, 0, 0);
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            let rows = "";
+            let paid = 0;
+            let pending = 0;
+            let countPaid = 0;
+            let countPending = 0;
+
+            crmRecords.forEach(item => {
+                const isPaid = item.status === 'paid' || item.status === 'delivered';
+                if (isPaid) {
+                    paid += item.price;
+                    countPaid++;
+                } else {
+                    pending += item.price;
+                    countPending++;
+                }
+
+                rows += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+                        <td class="py-3 font-bold text-slate-900">${item.name}</td>
+                        <td class="py-3 text-slate-600 truncate max-w-[140px]">${item.product}</td>
+                        <td class="py-3 text-slate-800 font-semibold">R$ ${item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td class="py-3 text-center">
+                            <select onchange="changePipelineStatus(${item.id}, this.value)" class="bg-slate-50 text-[10px] font-bold uppercase rounded-lg px-2 py-1 border border-slate-200 focus:outline-none cursor-pointer">
+                                <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Aguardando Contato</option>
+                                <option value="sent" ${item.status === 'sent' ? 'selected' : ''}>Fatura Enviada</option>
+                                <option value="paid" ${item.status === 'paid' ? 'selected' : ''}>Confirmado / Pago</option>
+                                <option value="delivered" ${item.status === 'delivered' ? 'selected' : ''}>Material Entregue</option>
+                            </select>
+                        </td>
+                        <td class="py-3 text-right">
+                            <button onclick="deleteRecord(${item.id})" class="text-slate-400 hover:text-red-600 transition p-1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = rows;
+            lucide.createIcons();
+
+            const conversion = crmRecords.length > 0 ? Math.round((countPaid / crmRecords.length) * 100) : 0;
+            updateKPIS(paid, pending, conversion, crmRecords.length, countPaid, countPending);
+        }
+
+        function updateKPIS(paid, pending, conv, total, cPaid, cPend) {
+            document.getElementById('crm-stat-revenue').innerText = "R$ " + paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('crm-stat-pending').innerText = "R$ " + pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('crm-stat-conversion').innerText = conv + "%";
+            document.getElementById('crm-stat-total').innerText = total;
+
+            document.getElementById('crm-stat-count-paid').innerText = `${cPaid} credenciados`;
+            document.getElementById('crm-stat-count-pending').innerText = `${cPend} pendentes`;
+        }
+
+        function updateScriptTexts() {
+            const lead = document.getElementById('script-lead-name').value || "[Nome]";
+            const value = document.getElementById('pix-custom-price').value || "197,00";
+
+            const inviteText = `━━━━━━━━━━━━━━━━━━━━━━━━━
+ CONVITE OFICIAL | TURMA FUNDADORA
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Olá, ${lead}! Tudo bem?
+
+Gostaria de estender um convite exclusivo para a abertura da Turma Fundadora do meu novo Workshop digital e prático:
+
+🧠 RECONSTRUÇÃO NEURAL
+↳ Tema Central: Você Não É o Impulso
+
+Como neurocientista clínico e psicanalista, estruturei esta imersão de 2 horas para entregar ferramentas aplicáveis de regulação comportamental. O objetivo é decodificar como o cérebro ativa o estado de defesa e como interromper os ciclos repetitivos de hábitos e procrastinação antes que eles assumam o controle automático, resgatando a clareza.
+
+ DETALHES DO EVENTO:
+• Formato: Online (Sala fechada / Vagas Limitadas)
+• Entrega: Sessão Prática + Workbook Digital de Exercícios
+
+ OPÇÕES DE ADESÃO:
+[ 🎟️ ] INGRESSO PADRÃO | R$ 97
+Acesso completo ao workshop ao vivo + Material de apoio.
+
+[ 🚀 ] PASSAPORTE VIP | R$ 197
+Acesso completo + Uma análise clínica individual do seu mapa de gatilhos comigo (pós-evento, em ambiente confidencial).
+
+Para garantir a qualidade e o suporte aos participantes, o número de acessos nesta turma inicial é estritamente restrito.
+
+Caso queira consolidar sua participação, basta me sinalizar por aqui qual o formato de sua preferência para receber as diretrizes de acesso.
+
+Atenciosamente,
+William Carvalho
+Neurociência Clínica & Psicanálise
+━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+            const billingText = `🎟️ Inscrição Confirmada — Turma Fundadora
+
+Excelente, ${lead}! Sua participação está confirmada.
+
+Para garantir sua vaga oficial na sala fechada e iniciar o caminho da claridade comportamental, você pode realizar o pagamento direto pelo QR Code na fatura anexada ou usando a chave manual abaixo:
+
+🔑 Chave Pix (E-mail): comercialwsc@gmail.com
+👤 Favorecido: William Santos de Carvalho (Banco Inter)
+
+💡 Dica de Facilidade: Se preferir parcelar, o aplicativo do seu próprio banco ou carteiras digitais (como PicPay ou Mercado Pago) oferece a opção de realizar o "Pix no Cartão de Crédito" em até 12x ao ler o código.
+
+Assim que concluir, me envie o comprovante por aqui para eu liberar o seu Workbook digital e separar o seu acesso.`;
+
+            const welcomeText = `✨ Tudo confirmado por aqui, ${lead}!
+
+Seu pagamento foi validado e sua credencial de acesso para a Turma Fundadora do Workshop Reconstrução Neural está oficialmente emitida.
+
+Estou te enviando em anexo o seu Workbook Digital de Exercícios Básicos. Recomendo dar uma olhada e preencher a autoanálise da página 3 antes da nossa sessão ao vivo para potencializar seus resultados.
+
+No dia do evento, enviarei o link direto da nossa sala fechada 15 minutos antes de começarmos.
+
+Seja muito bem-vindo a este ambiente de decodificação neural e clareza mental. Nos vemos em breve!`;
+
+            document.getElementById('script-out-invite').value = inviteText;
+            document.getElementById('script-out-billing').value = billingText;
+            document.getElementById('script-out-welcome').value = welcomeText;
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = text;
+            toast.classList.remove('opacity-0', 'translate-y-20', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-20', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function copyToClipboard(textareaId, buttonId) {
+            const area = document.getElementById(textareaId);
+            area.select();
+            document.execCommand('copy');
+
+            const btn = document.getElementById(buttonId);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Copiado com Sucesso!';
+            showToast('Script de conversão copiado!');
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+            }, 2000);
+        }
+
+        function downloadElement(elementId, fileName) {
+            const area = document.getElementById(elementId);
+            const originalBtn = event.currentTarget;
+            const originalText = originalBtn.innerHTML;
+
+            originalBtn.innerHTML = 'Processando...';
+            originalBtn.disabled = true;
+
+            const options = {
+                scale: 2.5,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                logging: false,
+                allowTaint: true
+            };
+
+            html2canvas(area, options).then(canvas => {
+                const image = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `${fileName}.png`;
+                link.href = image;
+                link.click();
+
+                originalBtn.innerHTML = originalText;
+                originalBtn.disabled = false;
+                showToast('Imagem de alta resolução exportada!');
+            }).catch(err => {
+                console.error(err);
+                showToast('Erro ao exportar. Tente tirar um print da prévia.');
+                originalBtn.innerHTML = originalText;
+                originalBtn.disabled = false;
+            });
+        }
+
+        window.onload = function() {
+            lucide.createIcons();
+            initCanvas();
+            drawCanvas();
+            loadCRMData();
+            updateScriptTexts();
+        }
+    </script>
+</body>
+</html>
